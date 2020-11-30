@@ -23,3 +23,4 @@ if __name__ == '__main__':
     data_process.basic_eda(testdata)
     # 2.2 数据清洗
     traindata = data_process.cleaner(traindata)
+    # 2.3 构造数据集
