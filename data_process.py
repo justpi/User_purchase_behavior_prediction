@@ -110,7 +110,25 @@ def construct_feature(df):
     dataset = pd.DataFrame(None, columns=['user_id', 'product_id', 'category_id', 'price', 'brand', 'continu_visit',
                                           'stay_time', 'view', 'cart', 'remove_from_cart', 'pre_1_product_behav',
                                           'pre_1_product_smi', 'pre_2_product_behav', 'pre_2_product_smi',
-                                          'pre_3_product_behav', 'pre_3_product_smi'])
+                                          'pre_3_product_behav', 'pre_3_product_smi'],
+                           index=[i for i in range(len(df['product_id'].unique()))])
+    df1 = df.groupby(['user_id', 'product_id'])
+
+    k = 0   #设置一个指示数，用于指示数据在表中存放的位置
+    for user in df['user_id'].unique():
+        pros = df['product_id'].loc[df['user_id'] == user]
+        #No.1
+        dataset.iloc[k]['user_id'] = user
+        for pro in pros:
+            sub_data = df1.get_group((user, pro))
+            #构建商品特征
+            dataset.iloc[k]['product_id'] = pro
+            # for i, row in sub_data.iterrows():  #构建每一个user_id和product_id下的用户行为特征
+
+
+
+            k = k + 1   #此处还有一个bug
+
 
 
 

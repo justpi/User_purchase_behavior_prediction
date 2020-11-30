@@ -40,4 +40,8 @@ if __name__ == '__main__':
     # data_process.basic_eda(traindata)
 
     trainset = data_process.construct_feature(traindata)
-    print(trainset['continu_visit'])
+    print(trainset.head())
+    traindata = traindata.groupby(['user_id', 'product_id'])
+    # print(traindata)
+    # ex = traindata.get_group((2, 5836522))
+    # print(type(traindata['user_id'].unique()))
