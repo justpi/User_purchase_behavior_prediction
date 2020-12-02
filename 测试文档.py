@@ -1,6 +1,11 @@
 import pandas as pd
 import data_process
 import matplotlib.pyplot as plt
+import warnings
+warnings.filterwarnings("ignore")
+import mymodels
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 trainfile = './data/train.csv'
 testfile = './data/test.csv'
@@ -22,6 +27,7 @@ if __name__ == '__main__':
     # data_process.basic_eda(testdata)
     # 2.2 数据清洗
     traindata = data_process.cleaner(traindata.iloc[:1000])
+    # print(traindata['event_type'].unique())
     # print(traindata['category_code'])
     # print(traindata['brand'])
     # print(traindata['price'].loc[traindata['price'] == traindata['price'].min()])
@@ -40,8 +46,8 @@ if __name__ == '__main__':
     # data_process.basic_eda(traindata)
 
     trainset = data_process.construct_feature(traindata)
-    print(trainset.head())
-    traindata = traindata.groupby(['user_id', 'product_id'])
-    # print(traindata)
-    # ex = traindata.get_group((2, 5836522))
-    # print(type(traindata['user_id'].unique()))
+    train_X = trainset.drop(axis=1, labels=['target'])
+    train_Y = trainset['target']
+    x_train, x_val, y_train, y_val = train_test_split(train_X, train_Y, test_size=0.3)
+    traindata['brand'] = LabelEncoder().fit_transform(traindata['brand'])
+    print(traindata['brand'].head())

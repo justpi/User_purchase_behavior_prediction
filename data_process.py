@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime
+from sklearn.preprocessing import LabelEncoder
 
 
 
@@ -178,10 +179,13 @@ def construct_feature(df):
     dataset.dropna(axis=0, how='all', inplace=True) #删除nan的行
 
     # 字符列onehot编码
-    dataset = dataset.join(pd.get_dummies(dataset.brand))
+    # dataset = dataset.join(pd.get_dummies(dataset.brand))
+    # labelEncoder编码
+    dataset['brand'] = LabelEncoder().fit_transform(dataset['brand'])
+
 
     #先删除部分未特征处理的列
-    dataset.drop(axis=1, labels=['brand','continu_visit', 'pre_1_product_behav', 'pre_1_product_smi', 'pre_2_product_behav',
+    dataset.drop(axis=1, labels=['continu_visit', 'pre_1_product_behav', 'pre_1_product_smi', 'pre_2_product_behav',
                                  'pre_2_product_smi', 'pre_3_product_behav', 'pre_3_product_smi'], inplace=True)
 
     #类型转换

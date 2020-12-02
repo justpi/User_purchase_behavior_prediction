@@ -36,8 +36,10 @@ if __name__ == '__main__':
     # trainset = data_process.construct_feature(traindata)
     # trainset.to_csv('./data/features.csv')
     # 2.4 分割数据集
+    # 此两行为特征数据导入
     trainset = pd.read_csv('./data/features.csv',)
     trainset.drop(columns=['Unnamed: 0'],axis=1,inplace=True)
+    trainset.drop('stay_time', axis=1, inplace=True)
     trainset['user_id'] = trainset['user_id'].astype('int')
     trainset['product_id'] = trainset['product_id'].astype('int')
     #设置分割点
@@ -55,9 +57,11 @@ if __name__ == '__main__':
     # 3. 拟合模型
     print('=================3 数据拟合=================')
     # 3.1 随机森林尝试
-    clf = mymodels.RandomFmodel(x_train, y_train, x_val, y_val)
-
-
+    # clf = mymodels.RandomFmodel(x_train.iloc[:, 2:], y_train, x_val.iloc[:, 2:], y_val)
+    # 3.2 梯度提升树
+    # clf = mymodels.GBTmodel(x_train.iloc[:, 2:], y_train, x_val.iloc[:, 2:], y_val)
+    # 3.3 xgboost分类器
+    clf = mymodels.XGCmodel(x_train.iloc[:, 2:], y_train, x_val.iloc[:, 2:], y_val)
 
 
 
@@ -66,7 +70,7 @@ if __name__ == '__main__':
     print('=================4 结果预测=================')
     test_X = testset.drop(axis=1, labels=['target'])
 
-    test_y = clf.predict_proba(test_X)
+    test_y = clf.predict_proba(test_X.iloc[:, 2:])
 
     test_y = pd.DataFrame(test_y, columns=['purchase_0', 'purchase_1'])
     test_y['user_id'] = test_X['user_id']
@@ -74,9 +78,9 @@ if __name__ == '__main__':
     # print(test_y['purchase_1'].shape)
     sub['purchase_1'] = None
     sub['purchase_1'].iloc[:] = test_y['purchase_1'].tolist()
-    print(sub)
+
     submission = data_process.mysubmission(sub, testdata)
-    submission.to_csv('./data/submission.csv')
+    submission[['user_id', 'product_id']].to_csv('./data/submission.csv',index=None)
     print('================= 完成 =================')
 
 
