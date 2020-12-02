@@ -15,30 +15,30 @@ if __name__ == '__main__':
     print('=================1. 导入数据=================')
     traindata = pd.read_csv(trainfile)
     testdata = pd.read_csv(testfile)
-    # print('原始训练集大小：%s, 原始测试集大小： %s' %(traindata.shape, testdata.shape))
-    #
-    # # 2. 数据处理
-    # print('=================2. 数据处理=================')
-    # traindata = traindata.merge(testdata,how='outer')
-    # print('合并后数据集大小: ', traindata.shape)
-    # # 2.1 数据信息查看
-    # # 训练集
-    # # print("=============== train set ===============")
-    # # data_process.basic_eda(traindata)
-    # # #测试集
-    # # print("=============== test set ===============")
-    # # data_process.basic_eda(testdata)
-    # # 2.2 数据清洗
-    # print('=================2.2 数据清洗=================')
-    # traindata = data_process.cleaner(traindata)
-    # # 2.3 构造数据集
-    # print('=================2.3 构造数据集=================')
-    # trainset = data_process.construct_feature(traindata)
-    # trainset.to_csv('./data/features.csv')
+    print('原始训练集大小：%s, 原始测试集大小： %s' %(traindata.shape, testdata.shape))
+
+    # 2. 数据处理
+    print('=================2. 数据处理=================')
+    traindata = traindata.merge(testdata, how='outer')
+    print('合并后数据集大小: ', traindata.shape)
+    # 2.1 数据信息查看
+    # 训练集
+    # print("=============== train set ===============")
+    # data_process.basic_eda(traindata)
+    # #测试集
+    # print("=============== test set ===============")
+    # data_process.basic_eda(testdata)
+    # 2.2 数据清洗
+    print('=================2.2 数据清洗=================')
+    traindata = data_process.cleaner(traindata)
+    # 2.3 构造数据集
+    print('=================2.3 构造数据集=================')
+    trainset = data_process.construct_feature(traindata)
+    trainset.to_csv('./data/features.csv')
     # 2.4 分割数据集
     # 此两行为特征数据导入
-    trainset = pd.read_csv('./data/features.csv',)
-    trainset.drop(columns=['Unnamed: 0'],axis=1,inplace=True)
+    # trainset = pd.read_csv('./data/features.csv',)
+    # trainset.drop(columns=['Unnamed: 0'],axis=1,inplace=True)
     trainset.drop('stay_time', axis=1, inplace=True)
     trainset['user_id'] = trainset['user_id'].astype('int')
     trainset['product_id'] = trainset['product_id'].astype('int')

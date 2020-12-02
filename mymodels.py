@@ -24,7 +24,7 @@ def GBTmodel(x_train, y_train,x_test, y_test):
 
 
 #LSTM模型
-def LSTMmodel(x_train, y_train, x_test, y_test):
+def CNN_LSTMmodel(x_train, y_train, x_test, y_test):
     clf =None
 
     return clf
