@@ -1,5 +1,6 @@
 import pandas as pd
 import datetime
+import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
 
@@ -219,6 +220,36 @@ def construct_feature(df):
     return dataset
 
 
+def neural_pre_proces(df,is_train = True):
+    print(df.columns)
+    # 去掉部分特征
+    df.drop(['event_time', ], axis=1, inplace=True)
+    # 非数值型特征编码
+    df['brand'] = LabelEncoder().fit_transform(df['brand'])
+    df['user_session'] = LabelEncoder().fit_transform(df['user_session'])
+    print(df.describe())
+    df1 = df.groupby(['user_id', 'product_id'])
+    # 构建target
+    targets = pd.DataFrame(None, columns=['user_id', 'product_id', 'target'])
+    drop_index = []
+    for user in df['user_id'].unique():
+        pros = df['product_id'].loc[df['user_id'] == user].unique()
+
+        for pro in pros:
+            # 创建target
+            targets['user_id'] = user
+            targets['product_id'] = pro
+            sub_data = df1.get_group((user, pro))
+            if is_train:
+                if sub_data['event_type'].tail(1).item() != 'purchase':
+                    targets['target'] = 0
+                if sub_data['event_type'].tail(1).item() == 'purchase':
+                    targets['target'] = 1
+
+            drop_index.append(sub_data.index.tolist()[-1])
+
+    # print(df['target'].describe())
+
 def mysubmission(data, origindata):
     """
     找到除用户已经购买的产品外最可能购买的产品
@@ -239,9 +270,12 @@ def mysubmission(data, origindata):
         res_data = product_data[product_data['product_id'].isin(origin_pro_data)]
 
         res_data.sort_values(by='purchase_1', ascending=False, inplace=True)
-        submission['product_id'].loc[submission['user_id'] == user] = res_data['product_id']
-
+        try:
+            submission['product_id'].loc[submission['user_id'] == user] = list(res_data['product_id'])[0]
+        except:
+            submission['product_id'].loc[submission['user_id'] == user] = list(origindata['product_id'].loc[(origindata['user_id'] == user) & (origindata['event_type'] == 'purchase')])[0]
     # print(submission.head())
     # print(submission.describe())
     # submission['product_id'] = submission['product_id'].astype('int')
     return submission
+

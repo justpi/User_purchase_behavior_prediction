@@ -17,29 +17,36 @@ if __name__ == '__main__':
     testdata = pd.read_csv(testfile)
     print('原始训练集大小：%s, 原始测试集大小： %s' %(traindata.shape, testdata.shape))
 
-    # 2. 数据处理
-    print('=================2. 数据处理=================')
-    traindata = traindata.merge(testdata, how='outer')
-    print('合并后数据集大小: ', traindata.shape)
-    # 2.1 数据信息查看
-    # 训练集
-    # print("=============== train set ===============")
-    # data_process.basic_eda(traindata)
-    # #测试集
-    # print("=============== test set ===============")
-    # data_process.basic_eda(testdata)
-    # 2.2 数据清洗
-    print('=================2.2 数据清洗=================')
-    traindata = data_process.cleaner(traindata)
-    # 2.3 构造数据集
-    print('=================2.3 构造数据集=================')
-    trainset = data_process.construct_feature(traindata)
-    trainset.to_csv('./data/features.csv')
+    # # 2. 数据处理
+    # print('=================2. 数据处理=================')
+    # traindata = traindata.merge(testdata, how='outer')
+    # print('合并后数据集大小: ', traindata.shape)
+    # # 2.1 数据信息查看
+    # # 训练集
+    # # print("=============== train set ===============")
+    # # data_process.basic_eda(traindata)
+    # # #测试集
+    # # print("=============== test set ===============")
+    # # data_process.basic_eda(testdata)
+    # # 2.2 数据清洗
+    # print('=================2.2 数据清洗=================')
+    # traindata = data_process.cleaner(traindata)
+    # # 2.3 构造数据集
+    # print('=================2.3 构造数据集=================')
+    # trainset = data_process.construct_feature(traindata)
+    # trainset.to_csv('./data/features.csv')
     # 2.4 分割数据集
     # 此两行为特征数据导入
-    # trainset = pd.read_csv('./data/features.csv',)
-    # trainset.drop(columns=['Unnamed: 0'],axis=1,inplace=True)
-    trainset.drop('stay_time', axis=1, inplace=True)
+    trainset = pd.read_csv('./data/features.csv',)
+    trainset.drop(columns=['Unnamed: 0'],axis=1,inplace=True)
+
+    trainset.drop(['stay_time','category_id',
+                   'user_view_count',
+       'user_cart_count', 'user_remove_count', 'user_purchase_count',
+       'view_purchase_ratial', 'cart_purchase_ratial',
+       'remove_purchase_ratial'], axis=1, inplace=True)
+    print(trainset.columns)
+    trainset['price'] = trainset['price'] * trainset['price'].std() + trainset['price'].mean()
     trainset['user_id'] = trainset['user_id'].astype('int')
     trainset['product_id'] = trainset['product_id'].astype('int')
     #设置分割点
@@ -82,5 +89,4 @@ if __name__ == '__main__':
     submission = data_process.mysubmission(sub, testdata)
     submission[['user_id', 'product_id']].to_csv('./data/submission.csv',index=None)
     print('================= 完成 =================')
-
 

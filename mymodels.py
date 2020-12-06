@@ -32,7 +32,9 @@ def CNN_LSTMmodel(x_train, y_train, x_test, y_test):
 
 #xgboost
 def XGCmodel(x_train, y_train, x_test, y_test):
-    clf = xgboost.XGBClassifier()
+
+
+    clf = xgboost.XGBClassifier(n_estimators=300, max_depth=6)
     clf.fit(x_train, y_train)
     predict = clf.predict(x_test)
     print(classification_report(y_test, predict))

@@ -45,9 +45,11 @@ if __name__ == '__main__':
 
     # data_process.basic_eda(traindata)
 
-    trainset = data_process.construct_feature(traindata)
-    train_X = trainset.drop(axis=1, labels=['target'])
-    train_Y = trainset['target']
-    x_train, x_val, y_train, y_val = train_test_split(train_X, train_Y, test_size=0.3)
-    traindata['brand'] = LabelEncoder().fit_transform(traindata['brand'])
-    print(traindata['brand'].head())
+    # trainset = data_process.construct_feature(traindata)
+    # train_X = trainset.drop(axis=1, labels=['target'])
+    # train_Y = trainset['target']
+    # x_train, x_val, y_train, y_val = train_test_split(train_X, train_Y, test_size=0.3)
+    # traindata['brand'] = LabelEncoder().fit_transform(traindata['brand'])
+    # print(traindata['brand'].head())
+    trainset = data_process.neural_pre_proces(traindata)
+
