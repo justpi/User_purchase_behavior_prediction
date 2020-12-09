@@ -2,6 +2,8 @@ import pandas as pd
 import datetime
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
+from torch.utils.data import Dataset,DataLoader
+import torch
 
 
 
@@ -51,7 +53,16 @@ def cleaner(df):
     #user_session
     # 有38个缺失值，对这38个缺失值按照上一个session填充
     df['user_session'].fillna(method='ffill', inplace=True)
-
+    df.drop(['category_code'], axis=1,inplace=True)
+    # 去掉部分特征
+    df.drop(['event_time', ], axis=1, inplace=True)
+    # 非数值型特征编码
+    df['brand'] = LabelEncoder().fit_transform(df['brand'])
+    df['user_session'] = LabelEncoder().fit_transform(df['user_session'])
+    df['event_type'].loc[df['event_type'] == 'view'] = 1
+    df['event_type'].loc[df['event_type'] == 'cart'] = 2
+    df['event_type'].loc[df['event_type'] == 'remove_from_cart'] = 3
+    df['event_type'].loc[df['event_type'] == 'purchase'] = 4
     return df
 
 
@@ -221,17 +232,20 @@ def construct_feature(df):
 
 
 def neural_pre_proces(df,is_train = True):
-    print(df.columns)
-    # 去掉部分特征
-    df.drop(['event_time', ], axis=1, inplace=True)
-    # 非数值型特征编码
-    df['brand'] = LabelEncoder().fit_transform(df['brand'])
-    df['user_session'] = LabelEncoder().fit_transform(df['user_session'])
-    print(df.describe())
+    # print(df.columns)
+    # # 去掉部分特征
+    # df.drop(['event_time', ], axis=1, inplace=True)
+    # # 非数值型特征编码
+    # df['brand'] = LabelEncoder().fit_transform(df['brand'])
+    # df['user_session'] = LabelEncoder().fit_transform(df['user_session'])
+    # print(df.describe())
     df1 = df.groupby(['user_id', 'product_id'])
     # 构建target
     targets = pd.DataFrame(None, columns=['user_id', 'product_id', 'target'])
+    trainset = []
+    testset = []
     drop_index = []
+    max_len = 0
     for user in df['user_id'].unique():
         pros = df['product_id'].loc[df['user_id'] == user].unique()
 
@@ -240,15 +254,48 @@ def neural_pre_proces(df,is_train = True):
             targets['user_id'] = user
             targets['product_id'] = pro
             sub_data = df1.get_group((user, pro))
+            if max_len <= sub_data.shape[0] - 1:
+                max_len = sub_data.shape[0] - 1
             if is_train:
-                if sub_data['event_type'].tail(1).item() != 'purchase':
-                    targets['target'] = 0
-                if sub_data['event_type'].tail(1).item() == 'purchase':
-                    targets['target'] = 1
+                if sub_data['event_type'].tail(1).item() != 4 and len(sub_data) > 1:
 
-            drop_index.append(sub_data.index.tolist()[-1])
+                    sub_data = sub_data.drop(['user_id', 'product_id'],axis=1)
+                    trainset.append([sub_data.drop(sub_data.index.tolist()[-1], axis=0).values.tolist(),  [1,0]])
+                if sub_data['event_type'].tail(1).item() == 4 and len(sub_data) > 1:
+                    sub_data = sub_data.drop(['user_id', 'product_id',],axis=1)
+                    features = sub_data.drop(sub_data.index.tolist()[-1], axis=0).values.tolist()
+                    trainset.append([features, [0,1]])
+                # if sub_data['event_type'].tail(1).item() == 'purchase' and len(sub_data) == 1:
+                #     trainset.append([sub_data.values.tolist(), 1])
+                # if sub_data['event_type'].tail(1).item() != 'purchase' and len(sub_data) == 1:
+                #     trainset.append([sub_data.values.tolist(), 0])
+            else:
+                testset.append([sub_data,])
+    if is_train:
 
-    # print(df['target'].describe())
+        return trainset
+    else:
+        return testset
+
+class myDataset(Dataset):
+    def __init__(self, traindata,is_train=True):
+        self.traindata = traindata
+        self.is_train = is_train
+
+    def __len__(self):
+        return len(self.traindata)
+
+    def __getitem__(self, idx):
+        if torch.is_tensor(idx):
+            idx = idx.tolist()
+        features = np.array(self.traindata)
+        idx_f = torch.tensor(features[idx][0], dtype=torch.float32)
+        zero_dim = torch.zeros(160 - idx_f.size()[0], idx_f.size()[1])
+        idx_f = torch.cat((idx_f, zero_dim), 0)
+        idx_f = idx_f.view(1, idx_f.size()[0], idx_f.size()[1])
+        idx_t = torch.tensor(features[idx][1], dtype=torch.float32)
+        # idx_t = idx_t.view(-1, 1)
+        return idx_f, idx_t
 
 def mysubmission(data, origindata):
     """
